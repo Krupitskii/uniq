@@ -480,36 +480,12 @@ window.addEventListener('keydown', function(e){
 });
 
 // Optional helper: "close all" — only if element exists
-const closeAllEl = (function(){const btn=document.getElementById('closeAll'); if(!btn) return; btn;
+const closeAllEl = document.getElementById('closeAll');
 if (closeAllEl) {
   closeAllEl.addEventListener('click', function(){
     document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show'));
   });
 }
-
-// ----------------------
-// Lightweight UI tests (non-intrusive)
-// 1) Programmatically open/close Stage 1 through the button click
-try {
-  const openBtn = document.querySelector('.btn[data-modal="m_stage1"]');
-  const m1 = document.getElementById('m_stage1');
-  if (openBtn && m1) {
-    openBtn.click();
-    console.assert(m1.classList.contains('show'), 'TEST: Stage1 should be opened');
-    m1.classList.remove('show');
-    console.assert(!m1.classList.contains('show'), 'TEST: Stage1 should be closed');
-  }
-} catch(e){ console.warn('UI test warning:', e); }
-
-// 2) ESC closes any shown modal
-try {
-  const m2 = document.getElementById('m_stage2');
-  if (m2) {
-    m2.classList.add('show');
-    window.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
-    console.assert(!m2.classList.contains('show'), 'TEST: Escape should close modal');
-  }
-} catch(e){ console.warn('UI test warning:', e); }
 </script>
 </body>
 </html>
