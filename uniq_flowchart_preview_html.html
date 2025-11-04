@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UNIQ — Текущий путь лида</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap');
+    html,body{margin:0;height:100%;font-family:'Inter',-apple-system,system-ui;background:#f6f7f8;color:#0f1012}
+    .app{max-width:1160px;margin:36px auto;padding:0 24px}
+    .topLogo{font-size:32px;font-weight:700;letter-spacing:.3px;text-align:center;margin-bottom:4px}
+    .hdr{text-align:center;font-size:22px;font-weight:600;margin-bottom:20px}
+
+    .board{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:20px;box-shadow:0 10px 26px rgba(0,0,0,.06);padding:20px 22px;margin-bottom:32px;position:relative}
+    .laneTitle{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#6b7280;margin:6px 0 14px 6px}
+    .row{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;align-items:start}
+
+    .card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.05);padding:14px;position:relative}
+    .card h4{margin:0 0 6px;font-size:14px;font-weight:700}
+    .card p{margin:6px 0 0;color:#5b6068;font-size:13px}
+    .card ul{margin:8px 0 0;padding-left:16px;color:#4b4f57;font-size:13px;line-height:1.5}
+    .colspan-3{grid-column:span 3}
+    .single{grid-template-columns:1fr}
+
+    .chev{display:flex;justify-content:center;align-items:center;margin:0 0 32px 0}
+    .chev span{width:2px;height:22px;background:#cfd3d8;position:relative}
+    .chev span:after{content:'';position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:9px solid #aab0b6}
+
+    /* right-aligned action area */
+    .cardRow{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+    .btn{appearance:none;border:1px solid #111;background:#111;color:#fff;border-radius:10px;padding:8px 12px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+    .btn:hover{filter:brightness(1.05)}
+
+    /* MODAL */
+    .modal{position:fixed;inset:0;background:rgba(15,16,18,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+    .modal.show{display:flex}
+    .modal__dialog{background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.22);width:min(820px,96%);max-height:84dvh;display:flex;flex-direction:column;overflow:hidden}
+    .modal__hd{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #eef0f2}
+    .modal__hd h3{margin:0;font-size:16px}
+    .close{appearance:none;border:0;background:#111;color:#fff;border-radius:10px;width:30px;height:30px;cursor:pointer;font-size:18px;font-weight:700;line-height:30px}
+    .modal__bd{padding:16px 20px;overflow:auto}
+
+    /* Infographic primitives */
+    .kpis{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#0f1012;color:#fff;font-size:12px;font-weight:700}
+    .chip.light{background:#f2f3f5;color:#111;border:1px solid #e5e8ec}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+    .panel{border:1px solid #eceff3;border-radius:14px;padding:16px;background:#fbfcfd}
+    .panel h5{margin:0 0 8px;font-size:14px;font-weight:700;letter-spacing:.01em}
+    .panel ul{margin:8px 0 0;padding-left:18px;color:#222;line-height:1.6;font-size:14px}
+
+    /* Modal typography normalization */
+    .modal__bd *{font-family:'Inter',-apple-system,system-ui;font-size:14px;line-height:1.6;letter-spacing:.01em}
+    .modal__bd h5{font-size:14px;font-weight:700;margin:0 0 8px}
+    .modal__bd ul{margin:8px 0 0;padding-left:18px}
+    .modal__ft{display:flex;justify-content:flex-end;gap:8px;padding:12px 14px;border-top:1px solid #eef0f2}
+
+    @media(max-width:980px){.row{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+    /* ============ MOBILE (≤ 900px) ============ */
+    @media (max-width: 900px){
+      /* Canvas paddings */
+      body{font-size:16px}
+      .wrap,.container,.stage,.section,.board{padding-left:16px !important;padding-right:16px !important}
+
+      /* Headings spacing */
+      h1,h2,h3{line-height:1.2}
+
+      /* Cards/rows fall to single column */
+      .row,.rows,.channels,.ops,.cards,.grid4,.grid-4,.grid-2,.flex-row{display:grid !important;grid-template-columns:1fr !important;gap:12px}
+      .card,.box,.pill,.input,.stage-card{width:100% !important}
+
+      /* Stage action buttons */
+      .btn{padding:12px 16px;border-radius:10px}
+      .btn[data-modal]{justify-self:end}
+
+      /* Modals: full-screen on mobile */
+      .modal{padding:0}
+      .modal__dialog{width:100vw;max-width:100vw;height:100vh;margin:0;border-radius:0;display:flex;flex-direction:column}
+      .modal__hd{padding:14px 16px;border-bottom:1px solid #eef0f2}
+      .modal__bd{padding:14px 16px;overflow:auto}
+      .modal__ft{position:sticky;bottom:0;left:0;right:0;background:#fff}
+
+      /* Inside modals: stack three columns → one */
+      .grid3{grid-template-columns:1fr;gap:12px}
+      .kpis{gap:6px}
+      .chip{padding:8px 12px;font-size:12px}
+      .panel{padding:14px;border-radius:12px}
+      .panel h5{font-size:15px;margin-bottom:6px}
+      .panel ul{font-size:14px;line-height:1.55}
+
+      /* Larger tap targets for close/OK */
+      .close{width:44px;height:44px;font-size:22px;line-height:44px}
+      .modal__ft .btn{min-height:44px}
+    }
+    /* Price badge */
+    .price{margin-top:12px;padding:10px 12px;border:1px solid #eef0f2;background:#fcfcfd;border-radius:10px;font-weight:700;display:inline-block}
+    .price span{font-weight:600}
+    .price small{font-weight:500;color:#4b4f57}
+    /* Mini calendar preview */
+    .miniCal{margin-top:14px;border:1px solid #eceff3;border-radius:12px;overflow:hidden;background:#fff}
+    .miniCal .cal-hd{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f7f8fa;border-bottom:1px solid #eceff3;font-weight:700}
+    .miniCal .grid{display:grid;grid-template-columns:repeat(7,1fr)}
+    .miniCal .cell{padding:10px;border-right:1px solid #f0f1f4;border-bottom:1px solid #f0f1f4;min-height:42px;font-size:12px}
+    .miniCal .cell.hd{background:#fbfcfd;font-weight:700;text-align:center}
+    .miniCal .cell.free{background:#f7fbf4}
+    .miniCal .cell.busy{background:#fff4f4}
+    .miniCal .cell.sel{outline:2px solid #111}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topLogo">UNIQ</div>
+  <div class="hdr">текущий путь лида</div>
+
+  <!-- BLOCK 1: Sources -->
+  <section class="board" id="block_sources">
+    <div class="laneTitle">входящие каналы</div>
+    <div class="row">
+      <div class="card colspan-3"><h4>Сайт</h4><p>uniq.la / miami / dubai</p></div>
+      <div class="card colspan-3"><h4>Instagram DM</h4><p>переходы из профиля/историй</p></div>
+      <div class="card colspan-3"><h4>Мессенджеры</h4><p>WhatsApp / Telegram</p></div>
+      <div class="card colspan-3"><h4>Брокеры</h4><p>входящие запросы от партнёров</p></div>
+    </div>
+  </section>
+
+  <div class="chev"><span></span></div>
+
+  <!-- BLOCK 2: Conversion -->
+  <section class="board" id="block_conversion">
+    <div class="laneTitle">конвертация</div>
+    <div class="row single">
+      <div class="card">
+        <div class="cardRow">
+          <div>
+            <h4>Ответ и обработка запроса</h4>
+            <ul>
+              <li>отвечает: <b>Юля</b> (ручная коммуникация)</li>
+              <li>нет auto‑ACK / нет очереди / возможна задержка TTFR</li>
+            </ul>
+          </div>
+          <div class="actions">
+            <button class="btn" data-modal="m_stage1">Этап 1: Voice AI 24/7</button>
+            <button class="btn" data-modal="m_stage2">Этап 2: Chat/IG AI</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="chev"><span></span></div>
+
+  <!-- BLOCK 3: Record -->
+  <section class="board" id="block_record">
+    <div class="laneTitle">запись клиента в базу</div>
+    <div class="row single">
+      <div class="card">
+        <div class="cardRow">
+          <div>
+            <h4>Фиксация данных клиента</h4>
+            <ul>
+              <li>исполнитель: <b>Юля</b></li>
+              <li>куда записывается: <b>?</b> (не определено / разнородно)</li>
+            </ul>
+          </div>
+          <div class="actions">
+            <button class="btn" data-modal="m_stage3">Этап 3: CRM + TG‑бот</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="chev"><span></span></div>
+
+  <!-- BLOCK 4: Close -->
+  <section class="board" id="block_close">
+    <div class="laneTitle">финализация сделки</div>
+    <div class="row single">
+      <div class="card">
+        <div class="cardRow">
+          <div>
+            <h4>Оформление / подтверждение</h4>
+            <ul>
+              <li>процесс: вручную</li>
+            </ul>
+          </div>
+          <div class="actions">
+            <button class="btn" data-modal="m_stage4">Этап 4: Бронирование</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="chev"><span></span></div>
+
+  <!-- BLOCK 5: Retention -->
+  <section class="board" id="block_retention">
+    <div class="laneTitle">возвратные клиенты</div>
+    <div class="row single">
+      <div class="card">
+        <div class="cardRow">
+          <div>
+            <h4>Повторы и удержание</h4>
+            <ul>
+              <li>повторные клиенты: <b>≤ 10%</b> (оценка)</li>
+              <li>системных касаний нет</li>
+            </ul>
+          </div>
+          <div class="actions">
+            <button class="btn" data-modal="m_stage5">Этап 5: Retention</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- MODALS (clean, one of each) -->
+<div class="modal" id="m_stage1" aria-hidden="true">
+  <div class="modal__dialog" role="dialog" aria-modal="true">
+    <div class="modal__hd">
+      <h3>Этап 1 — Voice AI 24/7 (звонки)</h3>
+      <button class="close" data-close>×</button>
+    </div>
+    <div class="modal__bd">
+      <div class="kpis">
+        <span class="chip">TTFR ≤ 60 сек</span>
+        <span class="chip">Missed = 0</span>
+        <span class="chip light">Аудио + транскрипт</span>
+      </div>
+      <div class="grid3" style="align-items:start">
+        <div class="panel">
+          <h5>Какую проблему решает</h5>
+          <ul>
+            <li>Пропущенные звонки</li>
+            <li>Задержка TTFR</li>
+            <li>Нет стандартизированного первичного брифа</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h5>Как работает</h5>
+          <ul>
+            <li><b>Мгновенный ответ AI:</b> звонок подхватывается сразу (24/7)</li>
+            <li><b>Стандартизованный сбор данных:</b> имя, язык, дата/время, город, гости, бюджет, повод</li>
+            <li><b>Передача в Telegram Юле:</b> карточка лида + ссылка на аудио/транскрипт</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h5>Результат</h5>
+          <ul>
+            <li>Моментальная фиксация каждого звонка</li>
+            <li>Юля получает единый бриф и сразу реагирует</li>
+            <li>После CRM (Этап 3) — автосоздание карточки</li>
+          </ul>
+        </div>
+      </div>
+    <div class="price">Стоимость: <span>$300</span> настройка <small>+ $100/мес</small></div></div>
+    <div class="modal__ft"><button class="btn" data-close>Понятно</button></div>
+  </div>
+</div>
+
+<div class="modal" id="m_stage2" aria-hidden="true">
+  <div class="modal__dialog" role="dialog" aria-modal="true">
+    <div class="modal__hd">
+      <h3>Этап 2 — Chat/IG AI (DM, WhatsApp, Telegram)</h3>
+      <button class="close" data-close>×</button>
+    </div>
+    <div class="modal__bd">
+      <div class="kpis">
+        <span class="chip">Ответ ≤ 60 сек</span>
+        <span class="chip">Заявки из чатов ↑</span>
+        <span class="chip light">Карточка в TG Юли</span>
+      </div>
+      <div class="grid3" style="align-items:start">
+        <div class="panel">
+          <h5>Какую проблему решает</h5>
+          <ul>
+            <li>Долгие ответы в DM/мессенджерах</li>
+            <li>Несобранный бриф в переписке</li>
+            <li>Потеря диалогов между каналами</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h5>Как работает</h5>
+          <ul>
+            <li><b>AI отвечает ≤ 60 сек</b> в IG DM / WA / TG</li>
+            <li><b>Собирает стандартный бриф</b> (те же поля, что в звонках)</li>
+            <li><b>Создаёт заявку</b> → уведомление Юле в Telegram</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h5>Результат</h5>
+          <ul>
+            <li>Единое время ответа во всех каналах</li>
+            <li>Полный бриф без ручного копипаста</li>
+            <li>Готово к автосозданию карточки в CRM</li>
+          </ul>
+        </div>
+      </div>
+    <div class="price">Стоимость: <span>$700</span> настройка <small>+ $50/мес</small></div></div>
+    <div class="modal__ft"><button class="btn" data-close>Понятно</button></div>
+  </div>
+</div>
+
+<div class="modal" id="m_stage3" aria-hidden="true">
+  <div class="modal__dialog" role="dialog" aria-modal="true">
+    <div class="modal__hd">
+      <h3>Этап 3 — HubSpot CRM + админ‑бот</h3>
+      <button class="close" data-close>×</button>
+    </div>
+    <div class="modal__bd">
+      <div class="kpis">
+        <span class="chip">Единая карточка</span>
+        <span class="chip">Автосоздание</span>
+        <span class="chip light">Импорт базы</span>
+      </div>
+      <div class="grid3" style="align-items:start">
+        <div class="panel">
+          <h5>Какую проблему решает</h5>
+          <ul>
+            <li>Разрозненные таблицы/заметки</li>
+            <li>Потеря истории/дубли</li>
+            <li>Нет омниканальной склейки</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h5>Как работает</h5>
+          <ul>
+            <li><b>Единый контекст для AI:</b> AI‑агент знает детали по каждому клиенту (история звонков и сообщений в IG/WA/TG/e‑mail) и подтягивает их из CRM для персональных ответов.</li>
+            <li><b>Карточка создаётся/обновляется</b> при любом контакте</li>
+            <li><b>Админ‑бот в TG</b>: добавить/объединить/править</li>
+            <li><b>История взаимодействий</b>: ссылки на аудио/чаты</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h5>Результат</h5>
+          <ul>
+            <li>Все данные в одном месте</li>
+            <li>Единая идентичность клиента</li>
+            <li>Основа для бронирования и ретеншна</li>
+          </ul>
+        </div>
+      </div>
+    <div class="price">Стоимость: <span>$2,500</span> настройка</div></div>
+    <div class="modal__ft"><button class="btn" data-close>Понятно</button></div>
+  </div>
+</div>
+
+<div class="modal" id="m_stage4" aria-hidden="true">
+  <div class="modal__dialog" role="dialog" aria-modal="true">
+    <div class="modal__hd">
+      <h3>Этап 4 — Система бронирования (флот/календарь)</h3>
+      <button class="close" data-close>×</button>
+    </div>
+    <div class="modal__bd">
+      <div class="kpis">
+        <span class="chip">Онлайн‑слоты</span>
+        <span class="chip">Доступность флота</span>
+        <span class="chip light">Синк с CRM</span>
+      </div>
+      <div class="grid3" style="align-items:start">
+        <div class="panel">
+          <h5>Какую проблему решает</h5>
+          <ul>
+            <li>Нет единой картины по слотам</li>
+            <li>Долгая координация вручную</li>
+            <li>Сложно закрывать брокерские заявки</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h5>Как работает</h5>
+          <ul>
+            <li><b>Календарь доступности</b> по яхтам</li>
+            <li><b>Онлайн‑бронь + внутренний режим</b> для брокеров</li>
+            <li><b>Связка сделка↔бронь</b>, статусы и отчёты</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h5>Результат</h5>
+          <ul>
+            <li>Прозрачность для владельца</li>
+            <li>Быстрее закрытие сделок</li>
+            <li>Меньше накладок</li>
+          </ul>
+        </div>
+      </div>
+      <div class="miniCal">
+        <div class="cal-hd">
+          <span>Календарь (превью)</span>
+          <span>Июль</span>
+        </div>
+        <div class="grid">
+          <div class="cell hd">Пн</div><div class="cell hd">Вт</div><div class="cell hd">Ср</div><div class="cell hd">Чт</div><div class="cell hd">Пт</div><div class="cell hd">Сб</div><div class="cell hd">Вс</div>
+          <div class="cell"></div><div class="cell">1</div><div class="cell free">2</div><div class="cell busy">3</div><div class="cell free">4</div><div class="cell busy">5</div><div class="cell">6</div>
+          <div class="cell">7</div><div class="cell free">8</div><div class="cell">9</div><div class="cell busy">10</div><div class="cell free">11</div><div class="cell">12</div><div class="cell">13</div>
+          <div class="cell">14</div><div class="cell busy">15</div><div class="cell free">16</div><div class="cell">17</div><div class="cell free sel">18</div><div class="cell busy">19</div><div class="cell">20</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal__ft"><button class="btn" data-close>Понятно</button></div>
+  </div>
+</div>
+
+<div class="modal" id="m_stage5" aria-hidden="true">
+  <div class="modal__dialog" role="dialog" aria-modal="true">
+    <div class="modal__hd">
+      <h3>Этап 5 — Retention / Повторные продажи</h3>
+      <button class="close" data-close>×</button>
+    </div>
+    <div class="modal__bd">
+      <div class="kpis">
+        <span class="chip">Повторы ≲ 10%</span>
+        <span class="chip light">Нужно обсудить</span>
+      </div>
+      <div class="grid3" style="align-items:start">
+        <div class="panel">
+          <h5>Какую проблему решает</h5>
+          <ul>
+            <li>Нет системных касаний с базой</li>
+            <li>Пропуск дата‑триггеров</li>
+            <li>Не используется история клиента</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h5>Как работает</h5>
+          <ul>
+            <li><b>CRM‑сегменты + дата‑кампании</b> (SMS/WA/исходящие)</li>
+            <li><b>Персональные офферы</b> из истории взаимодействий</li>
+            <li><b>Контроль LTV/повторов</b> по отчётам</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h5>Результат</h5>
+          <ul>
+            <li>Рост повторных бронирований</li>
+            <li>Предсказуемые касания</li>
+            <li>Увеличение LTV</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="modal__ft"><button class="btn" data-close>Понятно</button></div>
+  </div>
+</div>
+
+
+
+<script>
+// === Modal open/close (delegated & safe) ===
+// Open/close via delegated handler
+document.addEventListener('click', function(e){
+  const trigger = e.target.closest('.btn[data-modal]');
+  if(trigger){
+    const id = trigger.getAttribute('data-modal');
+    const m = document.getElementById(id);
+    if(m){ m.classList.add('show'); }
+    return; // don't fall through
+  }
+
+  // Close by [data-close]
+  if(e.target.matches('[data-close]')){
+    const modal = e.target.closest('.modal');
+    if(modal){ modal.classList.remove('show'); }
+    return;
+  }
+
+  // Close by clicking backdrop
+  if(e.target.classList.contains('modal')){
+    e.target.classList.remove('show');
+  }
+});
+
+// Close by Esc
+window.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show'));
+  }
+});
+
+// Optional helper: "close all" — only if element exists
+const closeAllEl = (function(){const btn=document.getElementById('closeAll'); if(!btn) return; btn;
+if (closeAllEl) {
+  closeAllEl.addEventListener('click', function(){
+    document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show'));
+  });
+}
+
+// ----------------------
+// Lightweight UI tests (non-intrusive)
+// 1) Programmatically open/close Stage 1 through the button click
+try {
+  const openBtn = document.querySelector('.btn[data-modal="m_stage1"]');
+  const m1 = document.getElementById('m_stage1');
+  if (openBtn && m1) {
+    openBtn.click();
+    console.assert(m1.classList.contains('show'), 'TEST: Stage1 should be opened');
+    m1.classList.remove('show');
+    console.assert(!m1.classList.contains('show'), 'TEST: Stage1 should be closed');
+  }
+} catch(e){ console.warn('UI test warning:', e); }
+
+// 2) ESC closes any shown modal
+try {
+  const m2 = document.getElementById('m_stage2');
+  if (m2) {
+    m2.classList.add('show');
+    window.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
+    console.assert(!m2.classList.contains('show'), 'TEST: Escape should close modal');
+  }
+} catch(e){ console.warn('UI test warning:', e); }
+</script>
+</body>
+</html>
